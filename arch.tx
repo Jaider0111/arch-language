@@ -1,0 +1,78 @@
+// Metamodel (M2) of the architecture description language for the SoS.
+// Starting point: language of Laboratory 4. Adaptations of team D are marked [D].
+Model:
+  'system' name=ID
+  constituents+=Constituent
+  elements+=Element
+  analyses*=Analysis
+;
+
+Constituent:
+  'constituent' name=ID label=STRING 'owner' owner=STRING
+;
+
+Element:
+  Component | Connector
+;
+
+Component:
+  'component' name=ID label=STRING
+  'in' system=[Constituent]
+  'tier' tier=Tier
+  'kind' kind=Kind
+  ('domain' domain=ID)?                     // [D] owner domain inside the constituent (C4)
+  ('availability' availability=NUMBER)?
+  ('latency' latency=NUMBER)?
+  ('event_capacity' event_capacity=NUMBER)? // [D] events/s one instance can consume
+  ('event_load' event_load=NUMBER)?         // [D] events/s received in the peak
+  ('instances' instances=INT)?              // [D] active instances (default 1)
+;
+
+Connector:
+  'connector' name=ID
+  'nature' natures+=Nature[',']
+  'coupling' coupling=Coupling
+  'carries' info=STRING
+  ('agreement' agreement=STRING)?
+  ('availability' availability=NUMBER)?
+  ('latency' latency=NUMBER)?
+  ':' links+=Link[',']
+;
+
+Link:
+  path+=[Component]['->']
+;
+
+Analysis:
+  'analysis' name=ID 'scenario' scenario=STRING
+  metric=Metric
+  ('backlog' backlog=NUMBER)?               // [D] events to absorb (recovery)
+  'target' target=NUMBER ':'
+  factors+=Factor[',']
+;
+
+Factor:
+  Group | Single
+;
+
+// [D] A factor may carry its own budget for the analysis (= value) and, for a
+// component with several instances, the common-cause fraction of its replicas.
+Single:
+  ref=[Element] ('=' value=NUMBER)? ('beta' beta=NUMBER)?
+;
+
+// [D] In availability, a group is a set of replicas with fraction beta (Lab 4).
+// In deadline, a group is a set of parties that work in parallel (the maximum counts).
+Group:
+  '[' members+=Single['|'] ']' ('beta' beta=NUMBER)?
+;
+
+Tier: 'T1' | 'T2' | 'T3' | 'T4' | 'T5';
+Kind: 'hardware_software' | 'hardware' | 'software' | 'physical';
+Nature: 'data_flow' | 'control_command' | 'dependency' | 'event_notification';
+Coupling: 'blocking' | 'supply' | 'sink';
+Metric: 'availability' | 'latency' | 'deadline' | 'recovery';   // [D] deadline, recovery
+
+Comment:
+  /\/\/.*$/
+;

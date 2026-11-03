@@ -1,0 +1,91 @@
+flowchart LR
+  subgraph CPS["Sistema de Gestión de Puertos del Caribe"]
+    CGW["Caribbean Port Gateway (T2)"]
+  end
+  subgraph PPS["Sistema de Gestión de Puertos del Pacífico"]
+    PGW["Pacific Port Gateway (T2)"]
+  end
+  subgraph RTS["Sistema de Transporte Carretero"]
+    RGW["Road Gateway (T2)"]
+  end
+  subgraph RLS["Sistema de Transporte Férreo"]
+    LGW["Rail Gateway (T2)"]
+  end
+  subgraph FTS["Sistema de Transporte Fluvial"]
+    FGW["Fluvial Gateway (T2)"]
+  end
+  subgraph NCS["Sistema de Coordinación Nacional"]
+    CCC["Consola del Centro de Coordinación (T1)"]
+    CAD["Consola Aduanera (T1)"]
+    APP["Aplicación del Inspector (T1)"]
+    NCG["National Coordination Gateway (T2)"]
+    TRA["Traductor de Mensajes Externos (T2)"]
+    BUS["Bus de Eventos (T2)"]
+    ADP["Adaptador de Escáneres (T2)"]
+    CAR["Servicio de Carga (T3)"]
+    TRS["Servicio de Tránsito (T3)"]
+    ADU["Servicio de Aduana (T3)"]
+    RSK["Servicio de Riesgo (T3)"]
+    HCDB[("Historial de Carga DB (T4)")]
+    RMDB[("Repositorio de Manifiestos DB (T4)")]
+    HPDB[("Historial de Posiciones DB (T4)")]
+    EXDB[("Expediente Aduanero DB (T4)")]
+    SCN["Escáner de Inspección No Intrusiva (T5)"]
+  end
+  NCG -->|D_K1| TRA
+  TRA -->|D_K2| NCG
+  TRA -->|D_K3| BUS
+  TRA -->|D_K4a| ADU
+  ADU -->|D_K4b| TRA
+  TRA -->|D_K5a| CAR
+  CAR -->|D_K5b| TRA
+  BUS -->|D_K6| CAR
+  CAR -->|D_K7| HCDB
+  CAR -->|D_K8| RMDB
+  BUS -->|D_K9| TRS
+  TRS -->|D_K10| HPDB
+  TRS -->|D_K11| BUS
+  CAR -->|D_K12a| TRS
+  TRS -->|D_K12b| CAR
+  BUS -->|D_K13| CCC
+  CCC -->|D_K14a| CAR
+  CAR -->|D_K14b| CCC
+  ADU -->|D_K15a| RSK
+  RSK -->|D_K15b| ADU
+  RSK -->|D_K16a| CAR
+  CAR -->|D_K16b| RSK
+  RSK -->|D_K17| EXDB
+  CAD -->|D_K18a| ADU
+  ADU -->|D_K18b| CAD
+  CAD -->|D_K19| ADU
+  ADU -->|D_K20| EXDB
+  ADU -->|D_K21| ADP
+  ADP -->|D_K22| SCN
+  SCN -->|D_K23| ADP
+  ADP -->|D_K24| ADU
+  APP -->|D_K25a| ADU
+  ADU -->|D_K25b| APP
+  APP -->|D_K26| ADU
+  ADU -->|D_K27| BUS
+  RGW -->|SoS_K5| NCG
+  RGW -->|SoS_K6| NCG
+  PGW -->|SoS_K8| NCG
+  PGW -->|SoS_K9a| NCG
+  NCG -->|SoS_K9b| PGW
+  CGW -->|SoS_K11| NCG
+  CGW -->|SoS_K12a| NCG
+  NCG -->|SoS_K12b| CGW
+  LGW -->|SoS_K13| NCG
+  LGW -->|SoS_K14| NCG
+  FGW -->|SoS_K15| NCG
+  FGW -->|SoS_K16| NCG
+  RGW -->|SoS_K17a| NCG
+  NCG -->|SoS_K17b| RGW
+  LGW -->|SoS_K18a| NCG
+  NCG -->|SoS_K18b| LGW
+  FGW -->|SoS_K19a| NCG
+  NCG -->|SoS_K19b| FGW
+  PGW -->|SoS_K20a| NCG
+  NCG -->|SoS_K20b| PGW
+  CGW -->|SoS_K21a| NCG
+  NCG -->|SoS_K21b| CGW
