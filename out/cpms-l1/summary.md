@@ -2,7 +2,7 @@
 
 - Constituents: 5
 - Components: 48
-- Connectors: 108
+- Connectors: 108 (88 internal, 20 boundary)
 
 ## Components by constituent and tier
 
@@ -34,7 +34,7 @@
 
 | Component | Connectors |
 |-----------|------------|
-| T2.1 Caribbean Port Gateway | 38 |
+| Caribbean Port Gateway | 38 |
 | T3.6 Gestión de portería y citas | 13 |
 | T3.12 Planificación intermodal | 13 |
 | T2.4 Adaptador de equipos del terminal | 9 |
@@ -42,7 +42,3 @@
 | T3.4 Gestión de patio | 8 |
 | T3.1 Gestión de escalas | 8 |
 | T3.9 Estado aduanero y retenciones | 8 |
-
-## Boundary connectors (derived)
-
-SoS_K1a, SoS_K1b, SoS_K10a, SoS_K10b, SoS_K11, SoS_K12a, SoS_K12b, SoS_K21a, SoS_K21b, SoS_K24a, SoS_K24b, SoS_K25a, SoS_K25b, SoS_K26a, SoS_K26b, SoS_K29, SoS_K31a, SoS_K31b, SoS_K32, SoS_K5

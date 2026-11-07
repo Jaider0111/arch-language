@@ -35,7 +35,7 @@ component CGW "Caribbean Port Gateway"                   in CPS tier T2 kind sof
 component T2.2 "T2.2 Broker de eventos interno"              in CPS tier T2 kind software availability 99.95
 component T2.3 "T2.3 Adaptador de navieras y agentes"        in CPS tier T2 kind software availability 99.95
 component T2.4 "T2.4 Adaptador de equipos del terminal"      in CPS tier T2 kind hardware_software availability 99.95
-component T2.5 "T2.5 Gateway IoT de campo"                   in CPS tier T2 kind hardware availability 99.90 capacity 10 load 20
+component T2.5 "T2.5 Gateway IoT de campo"                   in CPS tier T2 kind hardware availability 99.90 event_capacity 10 event_load 20
 component T2.6 "T2.6 Receptor AIS de buques"                 in CPS tier T2 kind hardware availability 99.95
 component T2.7 "T2.7 Backend para clientes externos (BFF)"   in CPS tier T2 kind software availability 99.95
 
@@ -133,7 +133,7 @@ connector A-K21 nature data_flow coupling supply
     carries "Confirmaciones e incidentes reportados por el operador" : T1.4 -> T2.4
 
 // Distribución de eventos internos
-connector A-K22 nature event_notification coupling supply
+connector A-K22 nature event_notification coupling blocking
     carries "Hechos de portería: lectura de placa, peso, llegada de camión" latency 50 : T2.2 -> T3.6
 connector A-K23 nature event_notification coupling supply
     carries "Hechos de patio y de unidades refrigeradas" : T2.2 -> T3.4
@@ -192,7 +192,7 @@ connector A-K47 nature data_flow coupling supply
 connector A-K48 nature control_command coupling supply
     carries "Abrir o cerrar barrera" : T3.6 -> T2.5
 connector A-K49 nature control_command coupling supply
-    carries "Orden de apertura o cierre enviada a la barrera" : T5.4
+    carries "Orden de apertura o cierre enviada a la barrera" : T2.5 -> T5.4
 connector A-K50 nature event_notification coupling supply
     carries "Carga o descarga de tren, barcaza o buque completada" : T3.10 -> T3.8
 connector A-K51 nature event_notification coupling supply
@@ -317,7 +317,7 @@ connector SoS_K12b nature data_flow coupling blocking
 connector SoS_K21a nature dependency coupling blocking
     carries "Consulta de estado consolidado de la carga en la que participa el operador portuario"
     agreement "Contrato de estado consolidado; regla de acceso y tasa P7"
-    availability 99.95 capacity 2 load 1.5
+    availability 99.95 event_capacity 2 event_load 1.5
     : CGW -> NCG
 connector SoS_K21b nature data_flow coupling blocking
     carries "Estado consolidado limitado a su carga; v3: posición y ETA estimadas"
@@ -406,11 +406,11 @@ analysis FieldEventLatency scenario "A-QS4 (latency)" latency target 200 :
 
 // A-QS6, response measure of Delivery 2: the port reconciles the 120 affected appointments
 // (L23) in <= 300 s after "restablecido". At 2 queries/s (P7): 60 s; 120 s if every query
-// needs its single retry (L24). Budgets in ms, written per factor (adaptation [A3]).
-analysis PortReconciliation scenario "A-QS6 (reconciliation)" latency target 300000 :
-    CGW value 60000
-analysis PortReconciliationRetry scenario "A-QS6 (reconciliation, one retry per query)" latency target 300000 :
-    CGW value 120000
+// needs its single retry (L24). Metric deadline (as in the models of team D): budgets in seconds.
+analysis PortReconciliation scenario "A-QS6 (reconciliation)" deadline target 300 :
+    CGW = 60
+analysis PortReconciliationRetry scenario "A-QS6 (reconciliation, one retry per query)" deadline target 300 :
+    CGW = 120
 
 // SoS-QS1, measure M4 (Delivery 2, 3.6.6), same analysis as sos.arch; budgets in ms.
 //   RGW 200 s recovers and re-sends; SoS_K5 40 s; NCG 230 s consolidates;

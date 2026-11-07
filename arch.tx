@@ -1,93 +1,89 @@
-// Metamodel (M2) of the architecture description language of the SoS
-// Adapted from Laboratory 4 (ERTMS) for the Caribbean Port Management System (CPMS).
-//
-// Adaptations with respect to Laboratory 4 (marked [A1]..[A4]):
-//   [A1] Identifiers keep the notation of Deliveries 1 and 2 (T2.1, A-K70, SoS-K12a, A-K85').
-//   [A2] Components and connectors may carry capacity and load (events or requests
-//        per second); components may carry a number of active instances; new metric
-//        'utilization' (A-QS4, A-QS6).
-//   [A3] A factor of an analysis may carry its own value (a stage budget or a
-//        scenario-specific availability), so the same element can appear in two
-//        scenarios with different budgets (SoS-QS1: M3 and M4).
-//   [A4] A factor may be a redundant element with n replicas and a common-cause
-//        fraction (T2.1, T2.5, T3.6, T3.9 in Delivery 2, L16), without duplicating
-//        the element in the structure.
-
+// Metamodel (M2) of the architecture description language for the SoS.
+// Starting point: language of Laboratory 4. Adaptations of team D are marked [D];
+// adaptations of team A (Caribbean Port, CPMS) are marked [A]. Every [A] change is an
+// addition: the models written for [D] keep their meaning.
 Model:
-    'system' name=ID
-    constituents+=Constituent
-    elements+=Element
-    analyses*=Analysis
+  'system' name=ID
+  constituents+=Constituent
+  elements+=Element
+  analyses*=Analysis
 ;
 
 Constituent:
-    'constituent' name=ID label=STRING 'owner' owner=STRING
+  'constituent' name=ID label=STRING 'owner' owner=STRING
 ;
 
 Element:
-    Component | Connector
+  Component | Connector
 ;
 
 Component:
-    'component' name=Ident label=STRING
-        'in' system=[Constituent]
-        'tier' tier=Tier
-        'kind' kind=Kind
-        ('availability' availability=NUMBER)?
-        ('latency' latency=NUMBER)?
-        ('capacity' capacity=NUMBER)?
-        ('load' load=NUMBER)?
-        ('instances' instances=INT)?
+  'component' name=Ident label=STRING       // [A] Ident (see below)
+  'in' system=[Constituent]
+  'tier' tier=Tier
+  'kind' kind=Kind
+  ('domain' domain=ID)?                     // [D] owner domain inside the constituent (C4)
+  ('availability' availability=NUMBER)?
+  ('latency' latency=NUMBER)?
+  ('event_capacity' event_capacity=NUMBER)? // [D] events/s one instance can consume
+  ('event_load' event_load=NUMBER)?         // [D] events/s received in the peak
+  ('instances' instances=INT)?              // [D] active instances (default 1)
 ;
 
 Connector:
-    'connector' name=Ident
-        'nature' natures+=Nature[',']
-        'coupling' coupling=Coupling
-        'carries' info=STRING
-        ('agreement' agreement=STRING)?
-        ('availability' availability=NUMBER)?
-        ('latency' latency=NUMBER)?
-        ('capacity' capacity=NUMBER)?
-        ('load' load=NUMBER)?
-        ':' links+=Link[',']
+  'connector' name=Ident                    // [A] Ident (see below)
+  'nature' natures+=Nature[',']
+  'coupling' coupling=Coupling
+  'carries' info=STRING
+  ('agreement' agreement=STRING)?
+  ('availability' availability=NUMBER)?
+  ('latency' latency=NUMBER)?
+  ('event_capacity' event_capacity=NUMBER)? // [A] requests or events/s the connector admits
+  ('event_load' event_load=NUMBER)?         // [A] requests or events/s it carries in the peak
+  ':' links+=Link[',']
 ;
 
 Link:
-    path+=[Component|Ident]['->']
+  path+=[Component|Ident]['->']
 ;
 
 Analysis:
-    'analysis' name=Ident 'scenario' scenario=STRING
-        metric=Metric 'target' target=NUMBER ':'
-        factors+=Factor[',']
+  'analysis' name=ID 'scenario' scenario=STRING
+  metric=Metric
+  ('backlog' backlog=NUMBER)?               // [D] events to absorb (recovery)
+  'target' target=NUMBER ':'
+  factors+=Factor[',']
 ;
 
 Factor:
-    Group | Replicated | Single
+  Group | Single
 ;
 
+// [D] A factor may carry its own budget for the analysis (= value) and, for a
+// component with several instances, the common-cause fraction of its replicas.
+// [A] 'replicas n' evaluates the element as n replicas without changing its instances
+// (a hypothetical structure, e.g. the 'before' of Delivery 2 for the CPMS).
 Single:
-    ref=[Element|Ident] ('value' value=NUMBER)?
+  ref=[Element|Ident] ('=' value=NUMBER)? ('replicas' replicas=INT)? ('beta' beta=NUMBER)?
 ;
 
-Replicated:
-    ref=[Component|Ident] 'replicas' count=INT 'beta' beta=NUMBER
-;
-
+// [D] In availability, a group is a set of replicas with fraction beta (Lab 4).
+// In deadline, a group is a set of parties that work in parallel (the maximum counts).
 Group:
-    '[' alternatives+=[Element|Ident]['|'] ']' 'beta' beta=NUMBER
+  '[' members+=Single['|'] ']' ('beta' beta=NUMBER)?
 ;
 
-// Identifier of Deliveries 1 and 2: letters and digits, with '.' or '-' inside and an optional prime.
-Ident:  /[A-Za-z][A-Za-z0-9_]*([.\-][A-Za-z0-9_]+)*'?/;
+Tier: 'T1' | 'T2' | 'T3' | 'T4' | 'T5';
+Kind: 'hardware_software' | 'hardware' | 'software' | 'physical';
+Nature: 'data_flow' | 'control_command' | 'dependency' | 'event_notification';
+Coupling: 'blocking' | 'supply' | 'sink';
+Metric: 'availability' | 'latency' | 'deadline' | 'recovery'    // [D] deadline, recovery
+      | 'utilization';                                         // [A] load / (capacity x instances)
 
-Tier:       'T1' | 'T2' | 'T3' | 'T4' | 'T5';
-Kind:       'hardware_software' | 'hardware' | 'software' | 'physical';
-Nature:     'data_flow' | 'control_command' | 'dependency' | 'event_notification';
-Coupling:   'blocking' | 'supply' | 'sink';
-Metric:     'availability' | 'latency' | 'utilization';
+// [A] Identifiers of Deliveries 1 and 2 (T2.1, A-K70, A-K85'): letters, digits and '_',
+// with '.' or '-' inside and an optional prime. Every ID of the base language is an Ident.
+Ident: /[A-Za-z][A-Za-z0-9_]*([.\-][A-Za-z0-9_]+)*'?/;
 
 Comment:
-    /\/\/.*$/
+  /\/\/.*$/
 ;
