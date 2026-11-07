@@ -11,20 +11,22 @@ NATURE = {
 }
 
 
-def _kind(obj):
-    return obj.__class__.__name__
-
-
 def _components(model):
-    return [e for e in model.elements if _kind(e) == 'Component']
+    return [e for e in model.elements if e.__class__.__name__ == 'Component']
 
 
 def _connectors(model):
-    return [e for e in model.elements if _kind(e) == 'Connector']
+    return [e for e in model.elements if e.__class__.__name__ == 'Connector']
 
 
 def _crosses(link):
     return len({c.system.name for c in link.path}) > 1
+
+
+def _nid(name):
+    """[A] Mermaid node identifier: Ident may contain '.', '-' and a prime (T2.1, A-K85').
+    Identifiers of the base language are returned unchanged."""
+    return re.sub(r'\W', '_', name)
 
 
 def _boundary(connector):
@@ -36,159 +38,62 @@ def _boundary(connector):
     return 'Yes (' + ', '.join(link.path[0].label for link in crossing) + ')'
 
 
-def _is_boundary(connector):
-    return any(_crosses(link) for link in connector.links)
-
-
-def _nid(name):
-    """Mermaid node identifier: Delivery identifiers contain '.' and '-'."""
-    return re.sub(r'\W', '_', name)
-
-
-def _write(out, name, lines):
-    with open(os.path.join(out, name), 'w', encoding='utf-8') as f:
+# ─────────────────────────────────────────────
+# Model-to-text: documentation
+# ─────────────────────────────────────────────
+def generate_connector_table(model, out):
+    lines = [f'# Connectors of {model.name}', '',
+             '| ID | Source → Target | Nature | Coupling | Information carried | Boundary |',
+             '|----|-----------------|--------|----------|---------------------|----------|']
+    for k in _connectors(model):
+        paths = '; '.join(' → '.join(c.label for c in link.path) for link in k.links)
+        natures = ', '.join(NATURE[n] for n in k.natures).capitalize()
+        lines.append(f'| {k.name} | {paths} | {natures} | {k.coupling.capitalize()} '
+                     f'| {k.info} | {_boundary(k)} |')
+    with open(os.path.join(out, 'connectors.md'), 'w', encoding='utf-8', newline='\n') as f:
         f.write('\n'.join(lines) + '\n')
 
 
-# ---------------------------------------------------
-# Model-to-text: documentation
-# ---------------------------------------------------
-
-def generate_connector_table(model, out):
-    lines = [f'# Connectors of {model.name}', '',
-             '| ID | Source → Target | Nature | Coupling | Information '
-             'carried | Boundary |',
-             '|----|-----------------|--------|----------|----------------'
-             '-----|----------|']
-    for k in _connectors(model):
-        paths = '; '.join(' → '.join(c.label for c in link.path)
-                          for link in k.links)
-        natures = ', '.join(NATURE[n] for n in k.natures).capitalize()
-        lines.append(f'| {k.name} | {paths} | {natures} | '
-                     f'{k.coupling.capitalize()} '
-                     f'| {k.info} | {_boundary(k)} |')
-    _write(out, 'connectors.md', lines)
-
-
-# ---------------------------------------------------
+# ─────────────────────────────────────────────
 # Model-to-text: graphical representation
-# ---------------------------------------------------
-
+# ─────────────────────────────────────────────
 def generate_view(model, out):
     lines = ['flowchart LR']
     for s in model.constituents:
         lines.append(f'  subgraph {s.name}["{s.label}"]')
         for c in _components(model):
             if c.system is s:
-                nid = _nid(c.name)
-                shape = (f'[("{c.label} ({c.tier})")]' if c.tier == 'T4'
-                         else f'["{c.label} ({c.tier})"]')
-                lines.append(f'    {nid}{shape}')
+                shape = f'[("{c.label} ({c.tier})")]' if c.tier == 'T4' else f'["{c.label} ({c.tier})"]'
+                lines.append(f'    {_nid(c.name)}{shape}')
         lines.append('  end')
     for k in _connectors(model):
         for link in k.links:
             for a, b in zip(link.path, link.path[1:]):
                 lines.append(f'  {_nid(a.name)} -->|{k.name}| {_nid(b.name)}')
-    _write(out, 'view.mmd', lines)
+    with open(os.path.join(out, 'view.mmd'), 'w', encoding='utf-8', newline='\n') as f:
+        f.write('\n'.join(lines) + '\n')
 
 
-# ---------------------------------------------------
-# Model-to-text: structural summary (reproduces counts of Deliveries 1 and 2)
-# ---------------------------------------------------
-
-def generate_summary(model, out):
-    comps = _components(model)
-    conns = _connectors(model)
-    lines = [f'# Summary of {model.name}', '',
-             f'- Constituents: {len(model.constituents)}',
-             f'- Components: {len(comps)}',
-             f'- Connectors: {len(conns)}', '']
-
-    lines += ['## Components by constituent and tier', '',
-              '| Constituent | T1 | T2 | T3 | T4 | T5 | Total |',
-              '|-------------|----|----|----|----|----|-------|']
-    for s in model.constituents:
-        mine = [c for c in comps if c.system is s]
-        row = [sum(1 for c in mine if c.tier == t)
-               for t in ('T1', 'T2', 'T3', 'T4', 'T5')]
-        lines.append(f'| {s.name} | ' + ' | '.join(map(str, row)) +
-                     f' | {len(mine)} |')
-
-    boundary = [k for k in conns if _is_boundary(k)]
-    internal = [k for k in conns if not _is_boundary(k)]
-    lines += ['', '## Connectors by coupling', '',
-              '| Class | Blocking | Supply | Sink | Total |',
-              '|-------|----------|--------|------|-------|']
-    for title, group in (('Internal', internal), ('Boundary (derived)',
-                                                  boundary)):
-        c = Counter(k.coupling for k in group)
-        lines.append(f'| {title} | {c["blocking"]} | {c["supply"]} | '
-                     f'{c["sink"]} | {len(group)} |')
-
-    lines += ['', '## Connectors by nature', '',
-              '| Nature | Internal | Boundary |', '|--------|----------|----------|']
-    for n in NATURE:
-        lines.append(f'| {NATURE[n]} | '
-                     f'{sum(1 for k in internal if n in k.natures)} | '
-                     f'{sum(1 for k in boundary if n in k.natures)} |')
-
-    degree = Counter()
-    for k in conns:
-        for link in k.links:
-            for c in link.path:
-                degree[c.name] += 1
-    lines += ['', '## Connectors per component (top 8)', '',
-              '| Component | Connectors |', '|-----------|------------|']
-    labels = {c.name: c.label for c in comps}
-    for name, d in degree.most_common(8):
-        lines.append(f'| {labels[name]} | {d} |')
-
-    lines += ['', '## Boundary connectors (derived)', '',
-              ', '.join(k.name for k in boundary)]
-    _write(out, 'summary.md', lines)
-
-
-# ---------------------------------------------------
+# ─────────────────────────────────────────────
 # Transformation to analysis: scenarios
-# ---------------------------------------------------
+# ─────────────────────────────────────────────
+def _instances(component):
+    return getattr(component, 'instances', 0) or 1
+
 
 def _unavailability(factor):
-    """Unavailability of a factor. A group of alternatives or a replicated
-    element uses the common-cause fraction beta: beta*U + ((1 - beta)*U)^n."""
-    kind = _kind(factor)
-    if kind == 'Group':
-        u = 1 - factor.alternatives[0].availability / 100
-        b = factor.beta
-        n = len(factor.alternatives)
-        name = ', '.join(r.name for r in factor.alternatives)
-        return b * u + ((1 - b) * u) ** n, f'{name} (β = {b:g})'
-    if kind == 'Replicated':
+    """Unavailability of a factor. A group of replicas, or a component with several
+    instances and a beta, uses the common-cause fraction: beta*U + ((1 - beta)*U)**n."""
+    if factor.__class__.__name__ == 'Single':
         u = 1 - factor.ref.availability / 100
-        b = factor.beta
-        n = factor.count
-        return (b * u + ((1 - b) * u) ** n,
-                f'{factor.ref.name} × {n} (β = {b:g})')
-    availability = factor.value or factor.ref.availability
-    return 1 - availability / 100, factor.ref.name
-
-
-def _analyze_utilization(analysis):
-    rows, worst = [], 0.0
-    for f in analysis.factors:
-        r = f.ref
-        instances = max(1, getattr(r, 'instances', 0) or 1)
-        u = r.load / (r.capacity * instances) * 100
-        needed = math.ceil(r.load / r.capacity)
-        worst = max(worst, u)
-        rows.append(f'| {r.name} | {r.load:g} | {r.capacity:g} | '
-                    f'{instances} | {u:.0f} % | {needed} |')
-    header = ['| Element | Load | Capacity per instance | Instances | '
-              'Utilization | Instances needed |',
-              '|---------|------|-----------------------|-----------|'
-              '-------------|------------------|']
-    summary = f'Bottleneck utilization: **{worst:.0f} %**'
-    met = round(worst, 6) <= analysis.target
-    return header, rows, summary, met
+        if factor.beta:
+            n, b = factor.replicas or _instances(factor.ref), factor.beta   # [A] replicas
+            return b * u + ((1 - b) * u) ** n, f'{factor.ref.name} × {n} (β = {b:g})'
+        return u, factor.ref.name
+    u = 1 - factor.members[0].ref.availability / 100
+    b, n = factor.beta, len(factor.members)
+    name = ', '.join(m.ref.name for m in factor.members)
+    return b * u + ((1 - b) * u) ** n, f'{name} (β = {b:g})'
 
 
 def analyze(analysis):
@@ -201,21 +106,17 @@ def analyze(analysis):
             result *= 1 - u
         result *= 100
         for u, name in terms:
-            rows.append(f'| {name} | {u * 100:.4f} % | '
-                        f'{u / total_u * 100:.0f} % |')
-        header = ['| Factor | Unavailability | Share |',
-                  '|--------|----------------|-------|']
+            rows.append(f'| {name} | {u * 100:.4f} % | {u / total_u * 100:.0f} % |')
+        header = ['| Factor | Unavailability | Share |', '|--------|----------------|-------|']
         hours = (100 - result) / 100 * 8760
-        summary = f'Chain availability: **{result:.4f} %** ({hours:.1f} h/year)'
+        summary = f'Chain availability: **{result:.2f} %** ({hours:.1f} h/year)'
         met = round(result, 6) >= analysis.target
     elif analysis.metric == 'latency':
-        result = 0.0
+        result = sum(f.ref.latency for f in analysis.factors)
         for f in analysis.factors:
-            budget = f.value or f.ref.latency
-            result += budget
-            rows.append(f'| {f.ref.name} | {budget:g} |')
+            rows.append(f'| {f.ref.name} | {f.ref.latency:g} ms |')
         header = ['| Stage | Budget |', '|-------|--------|']
-        summary = f'Chain latency: **{result:g}**'
+        summary = f'Chain latency: **{result:g} ms**'
         met = round(result, 6) <= analysis.target
     elif analysis.metric == 'deadline':
         # [D] Sum of the budgets of the stages; a group works in parallel and counts its maximum.
@@ -232,24 +133,92 @@ def analyze(analysis):
         header = ['| Stage | Budget |', '|-------|--------|']
         summary = f'Composed deadline: **{result:g} s**'
         met = round(result, 6) <= analysis.target
+    elif analysis.metric == 'utilization':
+        # [A] utilization: load / (capacity x instances) of each element; the worst one counts.
+        result = 0.0
+        for f in analysis.factors:
+            r = f.ref
+            n = _instances(r)
+            u = r.event_load / (r.event_capacity * n) * 100
+            result = max(result, u)
+            rows.append(f'| {r.name} | {r.event_load:g} | {r.event_capacity:g} | {n} | '
+                        f'{u:.0f} % | {math.ceil(r.event_load / r.event_capacity)} |')
+        header = ['| Element | Load (per s) | Capacity per instance (per s) | Instances | '
+                  'Utilization | Instances needed |',
+                  '|---------|--------------|-------------------------------|-----------|'
+                  '-------------|------------------|']
+        summary = f'Bottleneck utilization: **{result:.0f} %**'
+        met = round(result, 6) <= analysis.target
     else:
-        header, rows, summary, met = _analyze_utilization(analysis)
+        # [D] recovery: time to absorb a backlog with the spare capacity of the consumers.
+        spare = 0
+        for f in analysis.factors:
+            c = f.ref
+            n = _instances(c)
+            s = c.event_capacity * n - c.event_load
+            spare += s
+            rows.append(f'| {c.name} | {c.event_capacity:g} × {n} | {c.event_load:g} | {s:g} |')
+        header = ['| Consumer | Capacity (events/s × instances) | Load (events/s) | Spare (events/s) |',
+                  '|----------|----------------------------------|-----------------|------------------|']
+        result = analysis.backlog / spare if spare > 0 else float('inf')
+        rows.append(f'| **Total** | | | **{spare:g}** |')
+        summary = (f'Recovery time: **{result:.1f} s** '
+                   f'({analysis.backlog:g} events / {spare:g} events/s)')
+        met = result <= analysis.target
     verdict = 'met' if met else 'NOT met'
-    return ([f'## {analysis.name} (Scenario {analysis.scenario})', ''] +
-            header + rows +
-            ['', f'{summary}; target {analysis.target:g}: **{verdict}**', ''])
+    return [f'## {analysis.name} (Scenario {analysis.scenario})', ''] + header + rows + \
+           ['', f'{summary}; target {analysis.target:g}: **{verdict}**', '']
 
 
 def generate_analysis(model, out):
     lines = [f'# Analysis of {model.name}', '']
     for a in model.analyses:
         lines += analyze(a)
-    _write(out, 'analysis.md', lines)
+    with open(os.path.join(out, 'analysis.md'), 'w', encoding='utf-8', newline='\n') as f:
+        f.write('\n'.join(lines))
+
+
+# ─────────────────────────────────────────────
+# [A] Model-to-text: structural summary (reproduces the counts of Deliveries 1 and 2)
+# ─────────────────────────────────────────────
+def generate_summary(model, out):
+    comps, conns = _components(model), _connectors(model)
+    boundary = [k for k in conns if _boundary(k) != 'No']
+    internal = [k for k in conns if _boundary(k) == 'No']
+    lines = [f'# Summary of {model.name}', '',
+             f'- Constituents: {len(model.constituents)}',
+             f'- Components: {len(comps)}',
+             f'- Connectors: {len(conns)} ({len(internal)} internal, {len(boundary)} boundary)', '',
+             '## Components by constituent and tier', '',
+             '| Constituent | T1 | T2 | T3 | T4 | T5 | Total |',
+             '|-------------|----|----|----|----|----|-------|']
+    for s in model.constituents:
+        mine = [c for c in comps if c.system is s]
+        row = [sum(1 for c in mine if c.tier == t) for t in ('T1', 'T2', 'T3', 'T4', 'T5')]
+        lines.append(f'| {s.name} | ' + ' | '.join(map(str, row)) + f' | {len(mine)} |')
+    lines += ['', '## Connectors by coupling', '',
+              '| Class | Blocking | Supply | Sink | Total |',
+              '|-------|----------|--------|------|-------|']
+    for title, group in (('Internal', internal), ('Boundary (derived)', boundary)):
+        c = Counter(k.coupling for k in group)
+        lines.append(f'| {title} | {c["blocking"]} | {c["supply"]} | {c["sink"]} | {len(group)} |')
+    lines += ['', '## Connectors by nature', '',
+              '| Nature | Internal | Boundary |', '|--------|----------|----------|']
+    for n in NATURE:
+        lines.append(f'| {NATURE[n]} | {sum(1 for k in internal if n in k.natures)} | '
+                     f'{sum(1 for k in boundary if n in k.natures)} |')
+    degree = Counter(c.name for k in conns for link in k.links for c in link.path)
+    labels = {c.name: c.label for c in comps}
+    lines += ['', '## Connectors per component (top 8)', '',
+              '| Component | Connectors |', '|-----------|------------|']
+    lines += [f'| {labels[name]} | {d} |' for name, d in degree.most_common(8)]
+    with open(os.path.join(out, 'summary.md'), 'w', encoding='utf-8', newline='\n') as f:
+        f.write('\n'.join(lines) + '\n')
 
 
 def apply_transformations(model, out):
     os.makedirs(out, exist_ok=True)
     generate_connector_table(model, out)
     generate_view(model, out)
-    generate_summary(model, out)
     generate_analysis(model, out)
+    generate_summary(model, out)   # [A]

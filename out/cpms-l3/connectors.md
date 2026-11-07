@@ -71,45 +71,52 @@
 | A-K67 | T3.4 Gestión de patio → T3.12 Planificación intermodal | Data flow | Supply | Zona y punto de patio reservados | No |
 | A-K68 | T3.12 Planificación intermodal → T3.10 Coordinador de operaciones del terminal | Data flow | Supply | Ventanas de cargue y descargue acordadas con otros modos | No |
 | A-K69 | T3.12 Planificación intermodal → T3.6 Gestión de portería y citas | Data flow | Supply | Citas de retiro acordadas con transportadores | No |
-| A-K70 | T2.1 Caribbean Port Gateway → T3.6 Gestión de portería y citas | Dependency | Blocking | Solicitud de cita de camión recibida (SoS_K1a) | No |
-| A-K71 | T3.6 Gestión de portería y citas → T2.1 Caribbean Port Gateway | Data flow | Supply | Confirmación o rechazo de la cita (SoS_K1b) | No |
-| A-K72 | T2.1 Caribbean Port Gateway → T3.2 Asignación de atraque | Dependency | Blocking | Solicitud de muelle de transferencia para barcaza (SoS_K10a) | No |
-| A-K73 | T3.2 Asignación de atraque → T2.1 Caribbean Port Gateway | Data flow | Supply | Muelle y ventana asignados a la barcaza (SoS_K10b) | No |
-| A-K74 | T3.1 Gestión de escalas → T2.1 Caribbean Port Gateway | Event notification | Sink | Arribo/zarpe de buque y manifiesto (SoS_K11) | No |
-| A-K75 | T3.9 Estado aduanero y retenciones → T2.1 Caribbean Port Gateway | Dependency | Blocking | Solicitud de validación de levante (SoS_K12a) | No |
-| A-K76 | T2.1 Caribbean Port Gateway → T3.9 Estado aduanero y retenciones | Data flow | Supply | Estado de levante recibido (SoS_K12b) | No |
-| A-K77 | T3.8 Custodia y transferencia → T2.1 Caribbean Port Gateway | Dependency | Blocking | Consulta de estado consolidado, verificación de la contraparte (SoS_K21a) | No |
-| A-K78 | T2.1 Caribbean Port Gateway → T3.8 Custodia y transferencia | Data flow | Supply | Estado consolidado recibido (SoS_K21b) | No |
-| A-K79 | T3.12 Planificación intermodal → T2.1 Caribbean Port Gateway | Dependency | Blocking | Unidades listas y solicitud de vagones (SoS_K24a) | No |
-| A-K80 | T2.1 Caribbean Port Gateway → T3.12 Planificación intermodal | Data flow | Supply | Confirmación de convoy y ventana de cargue (SoS_K24b) | No |
-| A-K81 | T2.1 Caribbean Port Gateway → T3.12 Planificación intermodal | Dependency | Blocking | Aviso de convoy de exportación y solicitud de zona (SoS_K25a) | No |
-| A-K82 | T3.12 Planificación intermodal → T2.1 Caribbean Port Gateway | Data flow | Supply | Zona, punto y ventana de descargue asignados (SoS_K25b) | No |
-| A-K83 | T3.12 Planificación intermodal → T2.1 Caribbean Port Gateway | Dependency | Blocking | Solicitud de capacidad de camiones para retiro (SoS_K26a) | No |
-| A-K84 | T2.1 Caribbean Port Gateway → T3.12 Planificación intermodal | Data flow | Supply | Vehículos y cita de retiro confirmados, o rechazo (SoS_K26b) | No |
+| A-K70 | Caribbean Port Gateway → T3.6 Gestión de portería y citas | Dependency | Blocking | Solicitud de cita de camión recibida (SoS_K1a) | No |
+| A-K71 | T3.6 Gestión de portería y citas → Caribbean Port Gateway | Data flow | Supply | Confirmación o rechazo de la cita (SoS_K1b) | No |
+| A-K72 | Caribbean Port Gateway → T3.2 Asignación de atraque | Dependency | Blocking | Solicitud de muelle de transferencia para barcaza (SoS_K10a) | No |
+| A-K73 | T3.2 Asignación de atraque → Caribbean Port Gateway | Data flow | Supply | Muelle y ventana asignados a la barcaza (SoS_K10b) | No |
+| A-K74 | T3.1 Gestión de escalas → Caribbean Port Gateway | Event notification | Sink | Arribo/zarpe de buque y manifiesto (SoS_K11) | No |
+| A-K75 | T3.9 Estado aduanero y retenciones → Caribbean Port Gateway | Dependency | Blocking | Solicitud de validación de levante (SoS_K12a) | No |
+| A-K76 | Caribbean Port Gateway → T3.9 Estado aduanero y retenciones | Data flow | Supply | Estado de levante recibido (SoS_K12b) | No |
+| A-K77 | T3.8 Custodia y transferencia → Caribbean Port Gateway | Dependency | Blocking | Consulta de estado consolidado, verificación de la contraparte (SoS_K21a) | No |
+| A-K78 | Caribbean Port Gateway → T3.8 Custodia y transferencia | Data flow | Supply | Estado consolidado recibido (SoS_K21b) | No |
+| A-K79 | T3.12 Planificación intermodal → Caribbean Port Gateway | Dependency | Blocking | Unidades listas y solicitud de vagones (SoS_K24a) | No |
+| A-K80 | Caribbean Port Gateway → T3.12 Planificación intermodal | Data flow | Supply | Confirmación de convoy y ventana de cargue (SoS_K24b) | No |
+| A-K81 | Caribbean Port Gateway → T3.12 Planificación intermodal | Dependency | Blocking | Aviso de convoy de exportación y solicitud de zona (SoS_K25a) | No |
+| A-K82 | T3.12 Planificación intermodal → Caribbean Port Gateway | Data flow | Supply | Zona, punto y ventana de descargue asignados (SoS_K25b) | No |
+| A-K83 | T3.12 Planificación intermodal → Caribbean Port Gateway | Dependency | Blocking | Solicitud de capacidad de camiones para retiro (SoS_K26a) | No |
+| A-K84 | Caribbean Port Gateway → T3.12 Planificación intermodal | Data flow | Supply | Vehículos y cita de retiro confirmados, o rechazo (SoS_K26b) | No |
 | A-K85' | T3.8 Custodia y transferencia → T2.8 Buffer de eventos de custodia | Event notification | Supply | Custodia recibida: registro persistente local antes de transmitir (SoS_K29) | No |
-| A-K89 | T2.8 Buffer de eventos de custodia → T2.1 Caribbean Port Gateway | Data flow | Supply | Transmisión asíncrona e idempotente de custodias retenidas hacia SoS_K29 (P8) | No |
-| A-K86 | T3.12 Planificación intermodal → T2.1 Caribbean Port Gateway | Dependency | Blocking | Unidades listas y solicitud de capacidad fluvial (SoS_K31a) | No |
-| A-K87 | T2.1 Caribbean Port Gateway → T3.12 Planificación intermodal | Data flow | Supply | Barcazas, muelle y ventana confirmados, o rechazo (SoS_K31b) | No |
-| A-K76' | T2.1 Caribbean Port Gateway → T2.9 Caché de levantes aduaneros | Data flow | Supply | Actualiza la caché de levantes con lo recibido por SoS_K12b | No |
-| A-K90 | T3.9 Estado aduanero y retenciones → T2.9 Caché de levantes aduaneros | Dependency | Blocking | Consulta local síncrona (< 5 ms) con el Circuit Breaker de SoS_K12a abierto | No |
-| A-K88' | T2.1 Caribbean Port Gateway → T2.9 Caché de levantes aduaneros; T2.1 Caribbean Port Gateway → T3.9 Estado aduanero y retenciones | Event notification | Supply | Cambio de levante recibido (SoS_K32): actualiza la caché y notifica a T3.9 | No |
-| SoS_K1a | Road Gateway → T2.1 Caribbean Port Gateway | Dependency | Blocking | Solicitud de cita portuaria e información de programación de camión y conductor | Yes |
-| SoS_K1b | T2.1 Caribbean Port Gateway → Road Gateway | Data flow | Blocking | Confirmación de cita de ingreso, ventana horaria y carril asignado, o rechazo | Yes |
-| SoS_K10a | Fluvial Gateway → T2.1 Caribbean Port Gateway | Dependency | Blocking | Arribo de barcaza por el río Magdalena y solicitud de muelle de transferencia | Yes |
-| SoS_K10b | T2.1 Caribbean Port Gateway → Fluvial Gateway | Data flow | Blocking | Asignación de muelle de transferencia fluvial y ventana operativa, o rechazo | Yes |
-| SoS_K11 | T2.1 Caribbean Port Gateway → National Coordination Gateway | Event notification | Sink | Aviso de arribo/zarpe de motonave y manifiesto de carga en puertos del Caribe | Yes |
-| SoS_K12a | T2.1 Caribbean Port Gateway → National Coordination Gateway | Dependency | Blocking | Solicitud de validación de levante aduanero previa a la salida por portería | Yes |
-| SoS_K12b | National Coordination Gateway → T2.1 Caribbean Port Gateway | Data flow | Blocking | Estado de levante (concedido / inspección requerida / retenido) | Yes |
-| SoS_K21a | T2.1 Caribbean Port Gateway → National Coordination Gateway | Dependency | Blocking | Consulta de estado consolidado de la carga en la que el operador portuario participa | Yes |
-| SoS_K21b | National Coordination Gateway → T2.1 Caribbean Port Gateway | Data flow | Blocking | Estado consolidado, limitado a la carga en la que participa | Yes |
-| SoS_K24a | T2.1 Caribbean Port Gateway → Rail Gateway | Dependency | Blocking | Unidades de carga listas para transferencia patio-tren y solicitud de asignación de vagones | Yes |
-| SoS_K24b | Rail Gateway → T2.1 Caribbean Port Gateway | Data flow | Blocking | Confirmación de convoy, capacidad, plataforma y ventana de cargue, o rechazo | Yes |
-| SoS_K25a | Rail Gateway → T2.1 Caribbean Port Gateway | Dependency | Blocking | Aviso de convoy con carga de exportación y solicitud de zona de patio y ventana de descargue | Yes |
-| SoS_K25b | T2.1 Caribbean Port Gateway → Rail Gateway | Data flow | Blocking | Asignación de zona de patio, punto y ventana de descargue, o rechazo | Yes |
-| SoS_K26a | T2.1 Caribbean Port Gateway → Road Gateway | Dependency | Blocking | Solicitud de capacidad de camiones para retirar unidades liberadas en puertos del Caribe | Yes |
-| SoS_K26b | Road Gateway → T2.1 Caribbean Port Gateway | Data flow | Blocking | Confirmación de vehículos asignados y cita de retiro, o rechazo | Yes |
-| SoS_K29 | T2.1 Caribbean Port Gateway → National Coordination Gateway | Event notification | Sink | Registro de transferencia de custodia de carga recibida por el puerto del Caribe | Yes |
-| SoS_K31a | T2.1 Caribbean Port Gateway → Fluvial Gateway | Dependency | Blocking | Unidades liberadas listas para transferencia patio-barcaza y solicitud de capacidad de convoy fluvial | Yes |
-| SoS_K31b | Fluvial Gateway → T2.1 Caribbean Port Gateway | Data flow | Blocking | Confirmación de barcazas asignadas, muelle y ventana de cargue, o rechazo | Yes |
-| SoS_K32 | National Coordination Gateway → T2.1 Caribbean Port Gateway | Event notification | Sink | Cambio del estado de levante de una unidad en puertos del Caribe | Yes |
+| A-K89 | T2.8 Buffer de eventos de custodia → T3.8 Custodia y transferencia | Data flow | Supply | Acuse local del buffer, para que la operación portuaria continúe | No |
+| A-K90 | T2.8 Buffer de eventos de custodia → Caribbean Port Gateway | Data flow | Supply | Reenvío asíncrono hacia SoS_K29, con reintentos e idempotencia (transferId, P8) | No |
+| A-K86 | T3.12 Planificación intermodal → Caribbean Port Gateway | Dependency | Blocking | Unidades listas y solicitud de capacidad fluvial (SoS_K31a) | No |
+| A-K87 | Caribbean Port Gateway → T3.12 Planificación intermodal | Data flow | Supply | Barcazas, muelle y ventana confirmados, o rechazo (SoS_K31b) | No |
+| A-K88 | Caribbean Port Gateway → T3.9 Estado aduanero y retenciones | Event notification | Supply | Cambio de levante recibido (SoS_K32) | No |
+| A-K91 | Caribbean Port Gateway → T2.9 Caché de levantes aduaneros | Data flow | Supply | Actualiza la caché con los levantes recibidos por SoS_K12b | No |
+| A-K92 | Caribbean Port Gateway → T2.9 Caché de levantes aduaneros | Event notification | Sink | Actualiza la caché con los cambios de levante recibidos por SoS_K32 | No |
+| A-K93 | T3.9 Estado aduanero y retenciones → T2.9 Caché de levantes aduaneros | Dependency | Blocking | Consulta local (< 5 ms) cuando el Circuit Breaker abre SoS_K12a | No |
+| A-K94 | T2.9 Caché de levantes aduaneros → T3.9 Estado aduanero y retenciones | Data flow | Supply | Respuesta de la caché con el estado del levante | No |
+| A-K95 | Caribbean Port Gateway → T3.6 Gestión de portería y citas | Event notification | Sink | Aviso de servicio (SoS_K32) para operar en degradado | No |
+| A-K96 | Caribbean Port Gateway → T3.8 Custodia y transferencia | Event notification | Sink | Aviso de servicio (SoS_K32) para iniciar la reconciliación | No |
+| A-K97 | Caribbean Port Gateway → T3.12 Planificación intermodal | Event notification | Sink | Aviso de servicio (SoS_K32) para ajustar ventanas intermodales | No |
+| A-K98 | T3.8 Custodia y transferencia → T3.6 Gestión de portería y citas | Data flow | Supply | ETA estimada para las citas en modo degradado | No |
+| SoS_K1a | Road Gateway → Caribbean Port Gateway | Dependency | Blocking | Solicitud de cita portuaria y programación de camión y conductor | Yes |
+| SoS_K1b | Caribbean Port Gateway → Road Gateway | Data flow | Blocking | Confirmación de cita, ventana horaria y carril, o rechazo | Yes |
+| SoS_K10a | Fluvial Gateway → Caribbean Port Gateway | Dependency | Blocking | Arribo de barcaza y solicitud de muelle de transferencia | Yes |
+| SoS_K10b | Caribbean Port Gateway → Fluvial Gateway | Data flow | Blocking | Asignación de muelle de transferencia y ventana, o rechazo | Yes |
+| SoS_K11 | Caribbean Port Gateway → National Coordination Gateway | Event notification | Sink | Arribo/zarpe de motonave y manifiesto en puertos del Caribe | Yes |
+| SoS_K12a | Caribbean Port Gateway → National Coordination Gateway | Dependency | Blocking | Solicitud de validación de levante previa a la salida por portería | Yes |
+| SoS_K12b | National Coordination Gateway → Caribbean Port Gateway | Data flow | Blocking | Estado de levante: concedido, inspección requerida o retenido | Yes |
+| SoS_K21a | Caribbean Port Gateway → National Coordination Gateway | Dependency | Blocking | Consulta de estado consolidado de la carga en la que participa el operador portuario | Yes |
+| SoS_K21b | National Coordination Gateway → Caribbean Port Gateway | Data flow | Blocking | Estado consolidado limitado a su carga; v3: posición y ETA estimadas | Yes |
+| SoS_K24a | Caribbean Port Gateway → Rail Gateway | Dependency | Blocking | Unidades listas para transferencia patio-tren y solicitud de vagones | Yes |
+| SoS_K24b | Rail Gateway → Caribbean Port Gateway | Data flow | Blocking | Confirmación de convoy, capacidad, plataforma y ventana, o rechazo | Yes |
+| SoS_K25a | Rail Gateway → Caribbean Port Gateway | Dependency | Blocking | Aviso de convoy de exportación y solicitud de zona y ventana de descargue | Yes |
+| SoS_K25b | Caribbean Port Gateway → Rail Gateway | Data flow | Blocking | Zona de patio, punto y ventana de descargue, o rechazo | Yes |
+| SoS_K26a | Caribbean Port Gateway → Road Gateway | Dependency | Blocking | Solicitud de camiones para retirar unidades liberadas en el Caribe | Yes |
+| SoS_K26b | Road Gateway → Caribbean Port Gateway | Data flow | Blocking | Vehículos asignados y cita de retiro, o rechazo | Yes |
+| SoS_K29 | Caribbean Port Gateway → National Coordination Gateway | Event notification | Sink | Custodia recibida por el puerto del Caribe | Yes |
+| SoS_K31a | Caribbean Port Gateway → Fluvial Gateway | Dependency | Blocking | Unidades liberadas para transferencia patio-barcaza y solicitud de capacidad | Yes |
+| SoS_K31b | Fluvial Gateway → Caribbean Port Gateway | Data flow | Blocking | Barcazas asignadas, muelle y ventana de cargue, o rechazo | Yes |
+| SoS_K32 | National Coordination Gateway → Caribbean Port Gateway | Event notification | Sink | Cambio de levante en puertos del Caribe; v3: estado de servicio | Yes |
 | SoS_K5 | Road Gateway → National Coordination Gateway | Event notification | Sink | Custodia recibida por el transportador; v3: ETA al despachar | Yes |
