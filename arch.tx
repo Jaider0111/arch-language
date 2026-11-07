@@ -1,78 +1,93 @@
-// Metamodel (M2) of the architecture description language for the SoS.
-// Starting point: language of Laboratory 4. Adaptations of team D are marked [D].
+// Metamodel (M2) of the architecture description language of the SoS
+// Adapted from Laboratory 4 (ERTMS) for the Caribbean Port Management System (CPMS).
+//
+// Adaptations with respect to Laboratory 4 (marked [A1]..[A4]):
+//   [A1] Identifiers keep the notation of Deliveries 1 and 2 (T2.1, A-K70, SoS-K12a, A-K85').
+//   [A2] Components and connectors may carry capacity and load (events or requests
+//        per second); components may carry a number of active instances; new metric
+//        'utilization' (A-QS4, A-QS6).
+//   [A3] A factor of an analysis may carry its own value (a stage budget or a
+//        scenario-specific availability), so the same element can appear in two
+//        scenarios with different budgets (SoS-QS1: M3 and M4).
+//   [A4] A factor may be a redundant element with n replicas and a common-cause
+//        fraction (T2.1, T2.5, T3.6, T3.9 in Delivery 2, L16), without duplicating
+//        the element in the structure.
+
 Model:
-  'system' name=ID
-  constituents+=Constituent
-  elements+=Element
-  analyses*=Analysis
+    'system' name=ID
+    constituents+=Constituent
+    elements+=Element
+    analyses*=Analysis
 ;
 
 Constituent:
-  'constituent' name=ID label=STRING 'owner' owner=STRING
+    'constituent' name=ID label=STRING 'owner' owner=STRING
 ;
 
 Element:
-  Component | Connector
+    Component | Connector
 ;
 
 Component:
-  'component' name=ID label=STRING
-  'in' system=[Constituent]
-  'tier' tier=Tier
-  'kind' kind=Kind
-  ('domain' domain=ID)?                     // [D] owner domain inside the constituent (C4)
-  ('availability' availability=NUMBER)?
-  ('latency' latency=NUMBER)?
-  ('event_capacity' event_capacity=NUMBER)? // [D] events/s one instance can consume
-  ('event_load' event_load=NUMBER)?         // [D] events/s received in the peak
-  ('instances' instances=INT)?              // [D] active instances (default 1)
+    'component' name=Ident label=STRING
+        'in' system=[Constituent]
+        'tier' tier=Tier
+        'kind' kind=Kind
+        ('availability' availability=NUMBER)?
+        ('latency' latency=NUMBER)?
+        ('capacity' capacity=NUMBER)?
+        ('load' load=NUMBER)?
+        ('instances' instances=INT)?
 ;
 
 Connector:
-  'connector' name=ID
-  'nature' natures+=Nature[',']
-  'coupling' coupling=Coupling
-  'carries' info=STRING
-  ('agreement' agreement=STRING)?
-  ('availability' availability=NUMBER)?
-  ('latency' latency=NUMBER)?
-  ':' links+=Link[',']
+    'connector' name=Ident
+        'nature' natures+=Nature[',']
+        'coupling' coupling=Coupling
+        'carries' info=STRING
+        ('agreement' agreement=STRING)?
+        ('availability' availability=NUMBER)?
+        ('latency' latency=NUMBER)?
+        ('capacity' capacity=NUMBER)?
+        ('load' load=NUMBER)?
+        ':' links+=Link[',']
 ;
 
 Link:
-  path+=[Component]['->']
+    path+=[Component|Ident]['->']
 ;
 
 Analysis:
-  'analysis' name=ID 'scenario' scenario=STRING
-  metric=Metric
-  ('backlog' backlog=NUMBER)?               // [D] events to absorb (recovery)
-  'target' target=NUMBER ':'
-  factors+=Factor[',']
+    'analysis' name=Ident 'scenario' scenario=STRING
+        metric=Metric 'target' target=NUMBER ':'
+        factors+=Factor[',']
 ;
 
 Factor:
-  Group | Single
+    Group | Replicated | Single
 ;
 
-// [D] A factor may carry its own budget for the analysis (= value) and, for a
-// component with several instances, the common-cause fraction of its replicas.
 Single:
-  ref=[Element] ('=' value=NUMBER)? ('beta' beta=NUMBER)?
+    ref=[Element|Ident] ('value' value=NUMBER)?
 ;
 
-// [D] In availability, a group is a set of replicas with fraction beta (Lab 4).
-// In deadline, a group is a set of parties that work in parallel (the maximum counts).
+Replicated:
+    ref=[Component|Ident] 'replicas' count=INT 'beta' beta=NUMBER
+;
+
 Group:
-  '[' members+=Single['|'] ']' ('beta' beta=NUMBER)?
+    '[' alternatives+=[Element|Ident]['|'] ']' 'beta' beta=NUMBER
 ;
 
-Tier: 'T1' | 'T2' | 'T3' | 'T4' | 'T5';
-Kind: 'hardware_software' | 'hardware' | 'software' | 'physical';
-Nature: 'data_flow' | 'control_command' | 'dependency' | 'event_notification';
-Coupling: 'blocking' | 'supply' | 'sink';
-Metric: 'availability' | 'latency' | 'deadline' | 'recovery';   // [D] deadline, recovery
+// Identifier of Deliveries 1 and 2: letters and digits, with '.' or '-' inside and an optional prime.
+Ident:  /[A-Za-z][A-Za-z0-9_]*([.\-][A-Za-z0-9_]+)*'?/;
+
+Tier:       'T1' | 'T2' | 'T3' | 'T4' | 'T5';
+Kind:       'hardware_software' | 'hardware' | 'software' | 'physical';
+Nature:     'data_flow' | 'control_command' | 'dependency' | 'event_notification';
+Coupling:   'blocking' | 'supply' | 'sink';
+Metric:     'availability' | 'latency' | 'utilization';
 
 Comment:
-  /\/\/.*$/
+    /\/\/.*$/
 ;
